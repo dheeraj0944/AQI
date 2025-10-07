@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Gas Sensor Charts</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 p-0 m-0">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AirGuard</span>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Home</a>
+              <a href="/aqi" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">AQI</a>
+              
+             
+              <a href="/logout" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Logout</a>
+            </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </nav>
+
+  <br><br><br><br>
+  <!-- Page Title -->
+  <h1 class="text-2xl font-bold my-6 text-center text-blue-300">Live Gas Sensor Charts</h1>
+
+  <!-- Charts Grid -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center px-4 pb-8">
+    <div id="chart1" class="chart-box"></div>
+    <div id="chart2" class="chart-box"></div>
+    <div id="chart3" class="chart-box"></div>
+    <div id="chart4" class="chart-box"></div>
+    <div id="chart5" class="chart-box"></div>
+  </div>
+
+  <style>
+    .chart-box {
+      width: 320px;
+      height: 240px;
+      background: #1f2937; /* dark gray bg */
+      border: 1px solid #4b5563; /* darker border */
+      border-radius: 12px;
+      padding: 1rem;
+      position: relative;
+      font-family: sans-serif;
+    }
+    .grid-lines {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .y-label {
+      position: absolute;
+      left: 4px;
+      font-size: 0.65rem;
+      color: #9ca3af; /* light gray */
+      font-family: monospace;
+    }
+  </style>
+
+  <script>
+    const maxPoints = 16;
+    const maxY = 1024;
+    const width = 320;
+    const height = 240;
+
+    function mapY(value) {
+      return height - (value / maxY) * height;
+    }
+
+    function generatePoints(data) {
+      const stepX = width / (maxPoints - 1);
+      return data.map((val, i) => `${i * stepX},${mapY(val)}`).join(" ");
+    }
+
+    function createChart(id, label) {
+      const container = document.getElementById(id);
+      container.innerHTML = `
+        <div class="absolute top-3 left-10 flex items-center space-x-2">
+          <div class="w-6 h-3 border-4 border-blue-400 rounded-sm"></div>
+          <span class="text-xs text-gray-300">${label}</span>
+        </div>
+        <div class="grid-lines">
+          <div class="border-t border-red-600"></div>
+          <div class="border-t border-orange-500"></div>
+          <div class="border-t border-yellow-400"></div>
+          <div class="border-t border-green-400"></div>
+          <div></div>
+        </div>
+        <div class="y-label" style="top: 4px;">1024</div>
+        <div class="y-label" style="top: 60px;">768</div>
+        <div class="y-label" style="top: 120px;">512</div>
+        <div class="y-label" style="top: 180px;">256</div>
+        <div class="y-label" style="bottom: 4px;">0</div>
+        <svg viewBox="0 0 320 240" width="100%" height="100%">
+          <polyline stroke="#60a5fa" stroke-width="4" fill="none" id="${id}-line" />
+        </svg>
+      `;
+    }
+
+    function updateCharts(data) {
+      for (let i = 1; i <= 5; i++) {
+        const polyline = document.getElementById(`chart${i}-line`);
+        polyline.setAttribute("points", generatePoints(data[`sensor${i}`]));
+      }
+    }
+
+    for (let i = 1; i <= 5; i++) {
+      createChart(`chart${i}`, `Sensor ${i} (ppm)`);
+    }
+
+    function fetchData() {
+      fetch('/sensor-data')
+        .then(res => res.json())
+        .then(data => updateCharts(data))
+        .catch(err => console.error('Error:', err));
+    }
+
+    setInterval(fetchData, 500);
+    fetchData(); // Initial fetch
+  </script>
+</body>
+</html>

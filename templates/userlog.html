@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Basic -->
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <!-- Mobile Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <!-- Site Metas -->
+  <meta name="keywords" content="" />
+  <meta name="description" content="" />
+  <meta name="author" content="" />
+  <link rel="shortcut icon" href="http://127.0.0.1:5000/static/images/favicon.png" type="image/x-icon">
+  <title>Battery Management System</title>
+
+  <!-- bootstrap core css -->
+  <link rel="stylesheet" type="text/css" href="http://127.0.0.1:5000/static/css/bootstrap.css" />
+
+  <!-- fonts style -->
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:400,700|Poppins:400,600,700&display=swap" rel="stylesheet" />
+
+  <!-- Custom styles for this template -->
+  <link href="http://127.0.0.1:5000/static/css/style.css" rel="stylesheet" />
+  <!-- responsive style -->
+  <link href="http://127.0.0.1:5000/static/css/responsive.css" rel="stylesheet" />
+  <style>
+  body {
+    background-color: var(--dark-bg);
+    color: #ffffff;
+  }
+ 
+  .map-viewer {
+      width: 400px;  /* Changed from max-width to fixed width */
+      height: 500px; /* Added height to contain both map and button */
+      margin: 1rem auto;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+  }
+
+  .map-header {
+      text-align: center;
+      margin-bottom: 1rem;
+  }
+
+  .map-frame {
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+      overflow: hidden;
+      background: white;
+      flex: 1; /* Takes remaining space */
+  }
+
+  #live-map {
+      width: 100%;
+      height: 400px; /* Fixed height for the map */
+      border: none;
+  }
+
+  .form-label {
+      color: #000;
+  }
+
+  .map-actions {
+      margin-top: 1rem;
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      padding: 0.5rem 0;
+  }
+
+  .map-button {
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.2s ease;
+      font-size: 0.9rem;
+  }
+
+  .primary-button {
+      background: #10b981;
+      color: white;
+  }
+
+  .primary-button:hover {
+      background: #059669;
+      transform: translateY(-1px);
+  }
+
+  .location-details {
+      text-align: center;
+      margin: 0.5rem 0;
+      color: #4b5563;
+      font-size: 0.9rem;
+  }
+    </style>
+</head>
+
+<body class="sub_page">
+  <div class="hero_area">
+    <!-- header section strats -->
+    <div class="hero_bg_box">
+      <div class="img-box">
+        <img src="https://media.istockphoto.com/id/1211154399/vector/tire-service-concept.jpg?s=612x612&w=0&k=20&c=r-f1453ZFzDClUjIKsnoLS1ZEN7HXRIcRi76gMWulCA=" alt="">
+      </div>
+    </div>
+
+    <header class="header_section">
+      <div class="header_top">
+        <div class="container-fluid">
+          <div class="contact_link-container">
+            <a href="" class="contact_link1">
+              <i class="fa fa-map-marker" aria-hidden="true"></i>
+              <span>
+                Acharya Institute of Technology , Bangalore
+              </span>
+            </a>
+            <a href="" class="contact_link2">
+              <i class="fa fa-phone" aria-hidden="true"></i>
+              <span>
+                Call : +91 72040-36555
+              </span>
+            </a>
+            <a href="" class="contact_link3">
+              <i class="fa fa-envelope" aria-hidden="true"></i>
+              <span>
+                https://www.acharya.ac.in/
+              </span>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="header_bottom">
+        <div class="container-fluid">
+          <nav class="navbar navbar-expand-lg custom_nav-container">
+            <a class="navbar-brand" href="/">
+              <span>
+                Battery Detail 
+              </span>
+            </a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+              <span class=""></span>
+            </button>
+
+            <div class="collapse navbar-collapse ml-auto" id="navbarSupportedContent">
+              <ul class="navbar-nav  ">
+                <li class="nav-item ">
+                  <a class="nav-link" href="/predictdemand">Demand</a>
+                </li>
+                <li class="nav-item ">
+                  <a class="nav-link" href="/predict">Power</a>
+                </li>
+               
+                <li class="nav-item ">
+                  <a class="nav-link" href="/">Logout</a>
+                </li>
+              </ul>
+            </div>
+          </nav>
+        </div>
+      </div>
+    </header>
+    <!-- end header section -->
+  </div>
+
+  <!-- contact section -->
+
+  <section class="contact_section layout_padding">
+    <div class="contact_bg_box">
+      <div class="img-box">
+        <img src="https://media.istockphoto.com/id/1211154399/vector/tire-service-concept.jpg?s=612x612&w=0&k=20&c=r-f1453ZFzDClUjIKsnoLS1ZEN7HXRIcRi76gMWulCA=" alt="">
+      </div>
+    </div>
+    <div class="container">
+      {% if ct %}
+        <div style="
+          max-width: 800px;
+          margin: 40px auto;
+          padding: 10px;
+          background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+          border-radius: 20px;
+          font-family: 'Segoe UI', sans-serif;
+          text-align: center;
+          color: #222;
+        ">
+          <h2 style="margin-bottom: 20px; color: #333;">🔋 Battery Stats</h2>
+          
+          <h3 style="margin: 10px 0; color: #1a1a1a;">
+            Approximate Charging Time: <span style="color: #0077cc;">{{ct}}  Mins</span>
+          </h3>
+          
+          <h3 style="margin: 10px 0; color: #1a1a1a;">
+            Approximate Travel Distance: <span style="color: #28a745;">{{rull}} KMS</span>
+          </h3>
+          
+          <h3 style="margin: 10px 0; color: #1a1a1a;">
+            Approximate RUL: <span style="color: #28a745;">{{rdis}} Days</span>
+          </h3>
+          <hr style="margin-top: 20px; border-color: rgba(0,0,0,0.1);">
+        </div>
+      {% endif %}
+
+      <div class="heading_container heading_center">
+        <h2>
+          Prediction
+        </h2>
+      </div>
+      <div class="container mt-5">
+        <div class="card shadow-lg border-0 rounded-4" style="background: linear-gradient(135deg, #fdfbfb, #ebedee); padding: 40px;">
+          <h3 class="text-center mb-4" style="font-weight: 600; color: #333;">🔋 Battery Prediction Input Form</h3>
+          <form class="form-horizontal" action="{{ url_for('predict') }}" method="POST">
+            
+            <div class="row mb-3">
+              <div class="col-md-3">
+                <label class="form-label"><b>Cycle Index</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v1" placeholder="Enter the Value" required step="any">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label"><b>Discharge Time (s)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v2" placeholder="Enter the Value" required step="any">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label"><b>Decrement 3.6-3.4V (s)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v3" placeholder="Enter the Value" required step="any">
+              </div>
+              <div class="col-md-3">
+                <label class="form-label"><b>Voltage Dischar. (V)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v4" placeholder="Enter the Value" required step="any">
+              </div>
+            </div>
+      
+            <div class="row mb-3">
+              <div class="col-md-4">
+                <label class="form-label"><b>Current (A)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v5" placeholder="Enter the Value" required step="any">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label"><b>Time at 4.15V (s)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v6" placeholder="Enter the Value" required step="any">
+              </div>
+              <div class="col-md-4">
+                <label class="form-label"><b>Time constant current (s)</b></label>
+                <input class="form-control rounded-3 shadow-sm" type="number" name="v7" placeholder="Enter the Value" required step="any">
+              </div>
+            </div>
+      
+            <div class="text-center mt-4">
+              <button type="submit" class="btn btn-primary px-5 py-2 rounded-pill shadow">
+                🚀 Predict
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <br><br><br>
+    <!-- <div class="heading_container heading_center">
+      <h2>
+        Charging Station Nearby
+      </h2>
+    </div> -->
+
+    <!-- <div class="map-viewer">
+      <div class="map-frame">
+        <iframe id="live-map" src="/static/map.html" 
+                loading="eager"
+                referrerpolicy="strict-origin-when-cross-origin"
+                allowfullscreen>
+        </iframe>
+      </div>
+    
+      <div class="map-actions">
+          <a href="/static/map.html" 
+             class="map-button primary-button"
+             target="_blank"
+             rel="noopener noreferrer">
+              <i class="fas fa-external-link-alt"></i>
+              Open Full Screen Map
+          </a>
+      </div>
+    </div> -->
+
+
+  </section>
+
+  <!-- end contact section -->
+
+
+  <script src="http://127.0.0.1:5000/static/js/jquery-3.4.1.min.js"></script>
+  <script src="http://127.0.0.1:5000/static/js/bootstrap.js"></script>
+  <script src="http://127.0.0.1:5000/static/js/custom.js"></script>
+</body>
+
+</html>

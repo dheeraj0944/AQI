@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="og:title" content="Carbon Emission Prediction">
+  <meta name="author" content="Venkata Sreeram">
+  <meta name="og:image" content="static/logo1.png">
+  <meta name="Keywords" content="Flask, Machine Learning, Deep Learning, Artificial Intelligence, AI, ML,DL, Web Development">
+  <meta name="description" content="A Machine Learning and Deep Learning based webapp for Multiple Disease Prediction.">
+  <title>Carbon Emission Prediction</title>
+  <link rel="icon" href="{{ url_for('static', filename = 'logo1.png') }}" type="image/icon type">
+  <p> Health Monitoring </p>
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+    <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sticky-footer/">
+    <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  
+  <!-- <style>
+    html, body{ height:100%; margin:0; }
+header{ height:50px;}
+footer{ height:75px; background:black; }
+
+/* Trick */
+body{ 
+  display:flex; 
+  flex-direction:column; 
+}
+
+footer{
+  padding:10px;
+  margin-top:auto;
+  margin-bottom: auto; 
+}
+  </style> -->
+
+</head>
+<body>
+	<nav class="navbar navbar-expand-lg navbar-dark fixed-top" style="
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('home') }}" style="font-weight: 600;">
+            <i class="fas fa-smog mr-2"></i>AQI Track
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item mx-2">
+                    <a class="nav-link position-relative" href="{{ url_for('home') }}">
+                        Home
+                        <span class="nav-hover"></span>
+                    </a>
+                </li>
+                <li class="nav-item mx-2">
+                    <a class="nav-link position-relative" href="{{ url_for('auth') }}">
+                        Predict
+                        <span class="nav-hover"></span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<style>
+    .nav-link {
+        color: rgba(255,255,255,0.85) !important;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        padding: 0.5rem 1rem !important;
+        position: relative;
+    }
+
+    .nav-link:hover {
+        color: #fff !important;
+        transform: translateY(-2px);
+    }
+
+    .nav-hover {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 2px;
+        background: #fff;
+        transition: width 0.3s ease;
+    }
+
+    .nav-link:hover .nav-hover {
+        width: 100%;
+    }
+
+    .navbar-brand {
+        font-size: 1.4rem;
+        letter-spacing: 0.5px;
+        transition: transform 0.3s ease;
+    }
+
+    .navbar-brand:hover {
+        transform: scale(1.02);
+    }
+
+    .navbar-toggler {
+        border-color: rgba(255,255,255,0.5);
+    }
+
+    .navbar-toggler-icon {
+        background-image: url("data:image/svg+xml,%3csvg viewBox='0 0 30 30' xmlns='http://www.w3.org/2000/svg'%3e%3cpath stroke='rgba(255, 255, 255, 0.8)' stroke-width='2' stroke-linecap='round' stroke-miterlimit='10' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    }
+</style>
+
+       
+	<br>
+<br>
+<br>
+<br>
+<main>
+	<div class="container-fluid" style="margin-bottom: 10px;">
+	{% block content %}
+
+	{% endblock %}
+    </div>
+  </main>
+  
+</body>
+</html>
+{% if message %}
+<div class="alert alert-danger">{{ message }}</div>
+{% endif %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AQI_TRACK.AI | Gas Monitoring</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
+                        url('https://images.unsplash.com/photo-1611625618313-68b87aaa0622?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            width: 100px;
+            height: 100px;
+            background: rgba(76,175,80,0.1);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+        }
+
+        .cta-section {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            border-radius: 15px;
+            color: white;
+            padding: 2rem;
+            margin: 3rem 0;
+        }
+
+        .nav-pill {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 1rem;
+            margin: 1rem 0;
+            transition: all 0.3s ease;
+        }
+
+        .nav-pill:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(10px);
+        }
+    </style>
+</head>
+<body>
+
+<main role="main">
+    <section class="jumbotron p-5 text-white rounded text-center" style="background: transparent;">
+        <div class="container">
+            <h1 class="display-4 mb-4" style="font-weight: 700;">
+                <i class="fas fa-smog"></i> AQI Track.AI 
+            </h1>
+            <p class="lead" style="font-size: 1.5rem;">
+                AI-powered Air Quality monitoring and prediction system
+            </p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="glass-card p-4 mb-5">
+            <div class="row">
+                <div class="col-lg-6 text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-industry fa-3x text-primary"></i>
+                    </div>
+                    <h3>Emission Analytics</h3>
+                    <p>Real-time analysis of Air quality using IOT and Macine Learning</p>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain fa-3x text-primary"></i>
+                    </div>
+                    <h3>AI Predictions</h3>
+                    <p>ML models with Efficient  prediction  for Air Quality Index</p>
+                </div>
+                
+            </div>
+        </div>
+
+        <div class="glass-card p-4 mb-5">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2 class="mb-4">How It Works</h2>
+                    <div class="nav-pill">
+                        <h5><i class="fas fa-satellite fa-fw"></i> 1. Data Collection</h5>
+                        <p class="mb-0">Aggregating data from IoT sensors and Historical Data</p>
+                    </div>
+                    <div class="nav-pill">
+                        <h5><i class="fas fa-chart-line fa-fw"></i> 2. AI Analysis</h5>
+                        <p class="mb-0">Machine  learning models process Air Quality patterns</p>
+                    </div>
+                    <div class="nav-pill">
+                        <h5><i class="fas fa-bell fa-fw"></i> 3. Predictive Insights</h5>
+                        <p class="mb-0"> Predicting Aqi and Alerts</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <img src="https://www.unicef.org/cambodia/sites/unicef.org.cambodia/files/aqi.gif" class="img-fluid" alt="Emission Monitoring Process">
+                </div>
+            </div>
+        </div>
+
+        <div class="cta-section text-center">
+            <h2 class="mb-4">Ready to Analyze Air Quality?</h2>
+            <a href="{{ url_for('auth') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-play-circle"></i> Start Prediction Now
+            </a>
+        </div>
+
+        <!-- Accuracy Modal -->
+        <div class="modal fade" id="accuracyModal" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content glass-card">
+                    <div class="modal-header border-0">
+                        <h5 class="modal-title">Model Performance</h5>
+                        <button type="button" class="close" data-dismiss="modal">
+                            <span>&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <img src="/static/emission_accuracy.png" class="img-fluid" alt="Model Accuracy">
+                        <p class="mt-3">Efficient prediciton of Air Qualit Index</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

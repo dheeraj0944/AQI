@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="og:title" content="Air Quality Prediction">
+  <meta name="author" content="Venkata Sreeram">
+  <meta name="og:image" content="static/logo1.png">
+  <meta name="Keywords" content="Flask, Machine Learning, Deep Learning, Artificial Intelligence, AI, ML,DL, Web Development">
+  <meta name="description" content="A Machine Learning and Deep Learning based webapp for Multiple Disease Prediction.">
+  <title>Air Quality Prediction</title>
+  <link rel="icon" href="{{ url_for('static', filename = 'logo1.png') }}" type="image/icon type">
+  
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>
+  <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sticky-footer/">
+  <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f8fafc;
+      padding-top: 80px; /* Adjusted for fixed navbar */
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    main {
+      flex: 1;
+      padding: 20px 0;
+    }
+    
+    .content-wrapper {
+      min-height: calc(100vh - 120px); /* Adjust based on your footer height */
+    }
+    
+    /* Fix for fixed navbar overlapping content */
+    @media (max-width: 768px) {
+      body {
+        padding-top: 60px;
+      }
+    }
+
+    html body {
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+  
+    .gauge-container {
+      width: 400px;
+      height: 300px;
+      position: relative;
+      margin: 50px auto;
+    }
+  
+    .gauge-body {
+      width: 100%;
+      height: 0;
+      padding-bottom: 50%;
+      background: #f5f5f5;
+      position: relative;
+      border-top-left-radius: 100% 200%;
+      border-top-right-radius: 100% 200%;
+      overflow: hidden;
+    }
+  
+    .gauge-fill {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, 
+                  #00e400 0%, 
+                  #ffff00 20%, 
+                  #ff7e00 40%, 
+                  #ff0000 60%, 
+                  #99004c 80%, 
+                  #7e0023 100%);
+      transform-origin: center top;
+      transform: rotate(0.5turn);
+      transition: transform 1s ease-out;
+    }
+  
+    .gauge-cover {
+      width: 75%;
+      height: 150%;
+      background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+      border-radius: 50%;
+      position: absolute;
+      top: 25%;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+  
+    .gauge-needle {
+      width: 3px;
+      height: calc(50% - 10px);
+      background: #333;
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform 1s ease-out;
+      z-index: 10;
+    }
+  
+    .gauge-needle::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 20px;
+      height: 20px;
+      background: #333;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+  
+    .gauge-marks {
+      position: absolute;
+      bottom: -10;
+      left: 0;
+      width: 100%;
+      height: 50%;
+      display: flex;
+      justify-content: space-between;
+      padding: 0 10%;
+      box-sizing: border-box;
+    }
+  
+    .gauge-mark {
+      position: relative;
+      width: 1px;
+      height: 10px;
+      background: #333;
+    }
+  
+    .gauge-mark::after {
+      content: attr(data-value);
+      position: absolute;
+      top: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: white;
+      font-size: 0.8rem;
+    }
+  
+    .gauge-title {
+      position: absolute;
+      bottom: -50px;
+      left: 0;
+      width: 100%;
+      text-align: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      text-transform: uppercase;
+    }
+  
+    .result-text {
+      margin-top: 80px;
+      text-align: center;
+      color: white;
+    }
+  
+    .aqi-value {
+      font-size: 3rem;
+      font-weight: bold;
+      color: #cfc547;
+      margin: 10px 0;
+    }
+  
+    .status {
+      font-size: 1.5rem;
+      color: white;
+      text-transform: uppercase;
+    }
+  
+    @media (max-width: 500px) {
+      .gauge-container {
+        width: 300px;
+      }
+    }
+  </style>
+  
+  
+</head>
+<body>
+  <nav class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 w-full">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AirGuard</span>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/logged" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-900/50 relative group">
+                Home
+                <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 transform origin-left scale-x-100 transition-transform duration-300"></span>
+              </a>
+              <a href="/aqi" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">AQI</a>
+              
+              <a href="/logout" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Logout</a>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center">
+          <a href="#" class="px-4 py-2 rounded-md text-sm font-medium bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg shadow-cyan-500/20">
+            Get Started
+          </a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="content-wrapper">
+    <div class="container mx-auto px-4 py-8">
+      
+      
+      <div class="gauge-container">
+        <div class="gauge-body">
+          <div class="gauge-fill"></div>
+          <div class="gauge-needle"></div>
+          <div class="gauge-cover">    
+          </div>
+        </div>
+        
+        <div class="gauge-marks">
+          <div class="gauge-mark" data-value="0"></div>
+          <div class="gauge-mark" data-value="50"></div>
+          <div class="gauge-mark" data-value="100"></div>
+          <div class="gauge-mark" data-value="150"></div>
+          <div class="gauge-mark" data-value="200"></div>
+          <div class="gauge-mark" data-value="300"></div>
+          <div class="gauge-mark" data-value="500"></div>
+        </div>
+        <br>
+        <center><div class="aqi-value">{{ prediction }}</div></center>
+
+        <div class="gauge-title">Air Quality Index</div>
+      </div>
+      
+      <div class="result-text">
+        <p>The current air quality index is <span class="aqi-value">{{ prediction }}</span></p>
+        <p class="status">Status: {{ bucket }}</p>
+      </div>
+    </div>
+
+
+    <!-- Map Display Section -->
+{% if map_generated %}
+<div class="container mx-auto px-4 py-8">
+  <div class="bg-gray-800 rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-2xl font-semibold text-blue-400 mb-4 text-center">Route Map & AQI Analysis</h2>
+    
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Route Information -->
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-white mb-3">Route Details</h3>
+        <div class="space-y-2">
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-green-500 rounded-full mr-3"></div>
+            <span class="text-gray-300">From: {{ from_location }}</span>
+          </div>
+          <div class="flex items-center">
+            <div class="w-3 h-3 bg-red-500 rounded-full mr-3"></div>
+            <span class="text-gray-300">To: {{ to_location }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- AQI Information -->
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-white mb-3">Air Quality</h3>
+        <div class="space-y-2">
+          <div class="flex justify-between">
+            <span class="text-gray-300">Current AQI:</span>
+            <span class="font-semibold text-{{ 
+              'green' if bucket == 'GOOD' else 
+              'lightgreen' if bucket == 'Satisfactory' else 
+              'yellow' if bucket == 'Moderate' else 
+              'orange' if bucket == 'Poor' else 
+              'red' if bucket == 'Very Poor' else 
+              'darkred' 
+            }}">{{ prediction }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-gray-300">Status:</span>
+            <span class="font-semibold text-white">{{ bucket }}</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Recommendations -->
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h3 class="text-lg font-semibold text-white mb-3">Recommendations</h3>
+        <p class="text-sm text-gray-300">
+          {% if bucket in ['GOOD', 'Satisfactory'] %}
+          Air quality is good. You can proceed with outdoor activities.
+          {% elif bucket == 'Moderate' %}
+          Air quality is acceptable. Consider reducing prolonged outdoor exposure.
+          {% elif bucket in ['Poor', 'Very Poor'] %}
+          Poor air quality. Limit outdoor activities and consider using masks.
+          {% else %}
+          Severe air pollution. Avoid outdoor activities.
+          {% endif %}
+        </p>
+      </div>
+    </div>
+    
+    <!-- Map Embed -->
+    <div class="bg-gray-900 rounded-lg p-4">
+      <h3 class="text-lg font-semibold text-white mb-4 text-center">Interactive Route Map</h3>
+      <div class="h-96 rounded-lg border-2 border-gray-600 overflow-hidden">
+        <iframe src="{{ url_for('static', filename='map.html') }}" 
+                class="w-full h-full" 
+                frameborder="0"
+                title="Air Quality Route Map">
+        </iframe>
+      </div>
+      <p class="text-sm text-gray-400 mt-2 text-center">
+        💡 Click anywhere on the map to check AQI values. Green route indicates better air quality areas.
+      </p>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex justify-center space-x-4 mt-6">
+      <a href="/static/map.html" target="_blank" 
+         class="px-6 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md transition">
+        Open Map in New Tab
+      </a>
+      <a href="/aqi" 
+         class="px-6 py-2 bg-gray-600 hover:bg-gray-500 text-white rounded-md transition">
+        New Prediction
+      </a>
+    </div>
+  </div>
+</div>
+{% endif %}
+  </main>
+
+  <footer class="bg-gray-800 text-white py-6">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col items-center justify-center">
+        <div class="flex space-x-6 mb-4">
+          
+        </div>
+        <p class="text-gray-400 text-sm">
+          Made with <span class="text-red-500">&hearts;</span> by Sahana M
+        </p>
+      </div>
+    </div>
+  </footer>
+  <script>
+    // Calculate rotation angle based on AQI value
+    function setNeedlePosition(aqi) {
+      // AQI scale: 0-500
+      // Needle rotation: -90deg (0) to 90deg (500)
+      const minAngle = -90;
+      const maxAngle = 90;
+      const angle = minAngle + (aqi / 500) * (maxAngle - minAngle);
+      document.querySelector('.gauge-needle').style.transform = `translateX(-50%) rotate(${angle}deg)`;
+      
+      // Also adjust the gauge fill if you want a colored background
+      const fillRotation = 0.5 + (aqi / 500) * 0.5;
+      document.querySelector('.gauge-fill').style.transform = `rotate(${fillRotation}turn)`;
+    }
+  
+    // Set needle position when page loads
+    window.onload = function() {
+      const aqi = {{ prediction }};
+      setNeedlePosition(aqi);
+    };
+  </script>
+</body>
+</html>
