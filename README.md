@@ -2,13 +2,12 @@
 
 A web-based Air Quality Index (AQI) monitoring project designed to analyze, display, and visualize air quality data in a clear and user-friendly manner. This project demonstrates the use of data processing, visualization, and frontend development concepts.
 
----
 
 ## 🔍 Overview
 
 The AQI project focuses on representing air quality information such as pollutant levels and AQI values in an understandable format. It is intended to help users quickly assess environmental conditions and is suitable for academic, learning, and portfolio purposes.
 
----
+
 
 ## ✨ Features
 
@@ -18,7 +17,7 @@ The AQI project focuses on representing air quality information such as pollutan
 - Modular and well-structured codebase
 - Easy to extend with real-time or IoT data sources
 
----
+
 
 ## 🛠 Tech Stack
 
@@ -27,30 +26,21 @@ The AQI project focuses on representing air quality information such as pollutan
 - **Visualization:** Charts / Graphs  
 - **Tools:** npm / local server  
 
----
 
-🚀 Getting Started
+
+## 🚀 Getting Started
 
 1️⃣ Clone the Repository  
 
-git clone https://github.com/dheeraj0944/AQI.git
-cd AQI
+- git clone https://github.com/dheeraj0944/AQI.git  
+- cd AQI
 
-2️⃣ Install Dependencies (if applicable)
-npm install
+2️⃣ Install Dependencies 
+- npm install
 
 3️⃣ Run the Project
-npm start
+- npm start
 
-📊 Use Case
-
-Environmental monitoring
-
-Academic projects
-
-Data visualization practice
-
-Portfolio demonstration
 
 🤝 Contributing
 
