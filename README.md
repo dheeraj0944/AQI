@@ -1,57 +1,103 @@
-# 🌫️ AQI – Air Quality Index Monitoring System
+# 🌆 AQI – Air Quality Index Monitoring System
 
-A web-based Air Quality Index (AQI) monitoring project designed to analyze, display, and visualize air quality data in a clear and user-friendly manner. This project demonstrates the use of data processing, visualization, and frontend development concepts.
+A Flask and Deep Learning–based web application that predicts and visualizes the Air Quality Index (AQI) using historical air pollution data. This project demonstrates an end-to-end pipeline from model training to deployment through a web interface.
 
+---
 
-## 🔍 Overview
+## 🚀 Project Overview
 
-The AQI project focuses on representing air quality information such as pollutant levels and AQI values in an understandable format. It is intended to help users quickly assess environmental conditions and is suitable for academic, learning, and portfolio purposes.
+Air pollution is a major environmental concern affecting public health. The Air Quality Index (AQI) helps quantify pollution levels and associated health risks. This system uses deep learning models to predict AQI values and presents results through an interactive Flask web application.
 
+---
 
+## 🧠 Features
 
-## ✨ Features
+- AQI prediction using deep learning models (CNN/LSTM with attention)
+- Flask-based backend for model inference
+- Interactive web interface for predictions
+- Visualization of training performance (loss and MAE curves)
+- User authentication and login system
+- SQLite database integration
 
-- Display Air Quality Index (AQI) values
-- Visualization of air quality data
-- Clean and responsive user interface
-- Modular and well-structured codebase
-- Easy to extend with real-time or IoT data sources
-
-
+---
 
 ## 🛠 Tech Stack
 
-- **Frontend:** HTML / CSS / JavaScript  
-- **Data Handling:** AQI datasets / APIs (if applicable)  
-- **Visualization:** Charts / Graphs  
-- **Tools:** npm / local server  
+- **Backend:** Python, Flask  
+- **Machine Learning:** TensorFlow / Keras  
+- **Frontend:** HTML, CSS, JavaScript, Jinja2  
+- **Database:** SQLite  
 
+---
 
+## 📁 Project Structure
 
-## 🚀 Getting Started
+AQI/
+├── BACKEND/
+│ ├── Train.py
+│ ├── test_model.py
+│ └── plots/
+├── static/
+├── templates/
+├── app.py
+├── aqi_cnn_lstm_attention_model.keras
+├── aqi_scaler.save
+├── user_data.db
+├── requirements.txt
+└── README.md
 
-1️⃣ Clone the Repository  
+yaml
+Copy code
 
-- git clone https://github.com/dheeraj0944/AQI.git  
-- cd AQI
+---
 
-2️⃣ Install Dependencies 
-- npm install
+## ⚙️ Installation & Setup
 
-3️⃣ Run the Project
-- npm start
+### 1. Clone the repository
+```bash
+git clone https://github.com/dheeraj0944/AQI.git
+cd AQI
+2. Install dependencies
+```bash
+Copy code
+pip install -r requirements.txt
+3. Run the application
+bash
+Copy code
+python app.py
+Open your browser and visit:
 
+arduino
+Copy code
+http://localhost:5000
+📊 Model & Visualizations
+The repository includes trained models and performance plots such as:
 
-🤝 Contributing
+Training loss curve
 
-Contributions are welcome.
-Fork the repository, create a new branch, and submit a pull request.
+Mean Absolute Error (MAE) curve
 
-📄 License
+These are generated during training and stored in the backend plots directory.
 
-This project is developed for educational and learning purposes.
+📌 Usage
+Launch the Flask application
 
-👤 Author
+Register or log in as a user
 
+Enter required parameters for AQI prediction
+
+View predicted AQI values and visual outputs
+
+📄 Notes
+Trained models and supporting files are included in the repository for demonstration and ease of evaluation.
+
+📜 License
+This project is developed for academic and educational purposes.
+
+👨‍💻 Author
 Dheeraj
 GitHub: https://github.com/dheeraj0944
+
+
+
+---
