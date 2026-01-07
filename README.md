@@ -53,51 +53,53 @@ Copy code
 
 ## ⚙️ Installation & Setup
 
-### 1. Clone the repository
-```bash
-git clone https://github.com/dheeraj0944/AQI.git
-cd AQI
+1. Clone the repository
+   git clone https://github.com/dheeraj0944/AQI.git
+   cd AQI
+
 2. Install dependencies
-```bash
-Copy code
-pip install -r requirements.txt
+   pip install -r requirements.txt
+
 3. Run the application
-bash
-Copy code
-python app.py
+   python app.py
+
 Open your browser and visit:
-
-arduino
-Copy code
 http://localhost:5000
-📊 Model & Visualizations
-The repository includes trained models and performance plots such as:
-
-Training loss curve
-
-Mean Absolute Error (MAE) curve
-
-These are generated during training and stored in the backend plots directory.
-
-📌 Usage
-Launch the Flask application
-
-Register or log in as a user
-
-Enter required parameters for AQI prediction
-
-View predicted AQI values and visual outputs
-
-📄 Notes
-Trained models and supporting files are included in the repository for demonstration and ease of evaluation.
-
-📜 License
-This project is developed for academic and educational purposes.
-
-👨‍💻 Author
-Dheeraj
-GitHub: https://github.com/dheeraj0944
-
-
 
 ---
+
+## 📊 Model & Visualizations
+
+The repository includes trained deep learning models and performance plots such as:
+- Training loss curve
+- Mean Absolute Error (MAE) curve
+
+These files are provided for direct evaluation without retraining.
+
+---
+
+## 📌 Usage
+
+1. Start the Flask application
+2. Register or log in as a user
+3. Enter the required input parameters
+4. View the predicted AQI results and visual outputs
+
+---
+
+## 📄 Notes
+
+Trained models are included in the repository for demonstration and ease of evaluation.
+
+---
+
+## 📜 License
+
+This project is developed for academic and educational purposes.
+
+---
+
+## 👨‍💻 Author
+
+Dheeraj  
+GitHub: https://github.com/dheeraj0944
