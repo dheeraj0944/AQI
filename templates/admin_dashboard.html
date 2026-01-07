@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Air Pollution Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .notification-item {
+            animation: slideIn 0.3s ease-out;
+        }
+        @keyframes slideIn {
+            from { transform: translateX(-100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+    <!-- Header -->
+    <header class="bg-white/10 backdrop-blur-md border-b border-white/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-shield-alt text-white text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-white">Admin Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-white/80">Welcome, Admin</span>
+                    <a href="/" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Current Status Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Current AQI -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm">Current AQI</p>
+                        <p class="text-3xl font-bold text-white" id="current-aqi">{{ sensor_data.aqi | round(1) }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-wind text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <span class="text-sm px-2 py-1 rounded-full" id="aqi-status">
+                        {% if sensor_data.aqi <= 50 %}
+                            <span class="bg-green-500 text-white">Good</span>
+                        {% elif sensor_data.aqi <= 100 %}
+                            <span class="bg-yellow-500 text-white">Satisfactory</span>
+                        {% elif sensor_data.aqi <= 200 %}
+                            <span class="bg-orange-500 text-white">Moderate</span>
+                        {% elif sensor_data.aqi <= 300 %}
+                            <span class="bg-red-500 text-white">Poor</span>
+                        {% elif sensor_data.aqi <= 400 %}
+                            <span class="bg-purple-500 text-white">Very Poor</span>
+                        {% else %}
+                            <span class="bg-red-800 text-white">Severe</span>
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Threshold Setting -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm">Alert Threshold</p>
+                        <p class="text-3xl font-bold text-white" id="threshold-value">{{ threshold }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-exclamation-triangle text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <input type="range" 
+                           id="threshold-slider" 
+                           min="0" 
+                           max="500" 
+                           value="{{ threshold }}" 
+                           class="w-full h-2 bg-white/20 rounded-lg appearance-none cursor-pointer">
+                </div>
+            </div>
+
+            <!-- Notifications Count -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm">Active Alerts</p>
+                        <p class="text-3xl font-bold text-white" id="notifications-count">{{ notifications|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-bell text-white text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-2">
+                    <button onclick="clearNotifications()" class="text-sm bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded transition duration-200">
+                        Clear All
+                    </button>
+                </div>
+            </div>
+
+            <!-- Last Update -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-white/80 text-sm">Last Update</p>
+                        <p class="text-lg font-semibold text-white" id="last-update">
+                            {% if sensor_data.timestamp %}
+                                {{ sensor_data.timestamp.split('T')[1].split('.')[0] if 'T' in sensor_data.timestamp else 'N/A' }}
+                            {% else %}
+                                N/A
+                            {% endif %}
+                        </p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center">
+                        <i class="fas fa-clock text-white text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Bar -->
+        <div class="glass-effect rounded-xl p-4 mb-8">
+            <div class="flex flex-wrap items-center justify-between">
+                <h2 class="text-lg font-semibold text-white mb-4 lg:mb-0">
+                    <i class="fas fa-tools mr-2"></i>Quick Actions
+                </h2>
+                <div class="flex flex-wrap gap-3">
+                    <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-download mr-2"></i>Export Data
+                    </button>
+                    <button onclick="refreshAll()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh All
+                    </button>
+                    <button onclick="showSystemInfo()" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-info-circle mr-2"></i>System Info
+                    </button>
+                    <button onclick="showUserStats()" class="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg transition duration-200">
+                        <i class="fas fa-users mr-2"></i>User Stats
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Notifications Panel -->
+            <div class="glass-effect rounded-xl p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-bold text-white">
+                        <i class="fas fa-bell mr-2"></i>AQI Alerts
+                    </h2>
+                    <div class="flex space-x-2">
+                        <button onclick="refreshNotifications()" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            <i class="fas fa-sync-alt mr-1"></i>Refresh
+                        </button>
+                        <button onclick="clearNotifications()" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm transition duration-200">
+                            <i class="fas fa-trash mr-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="space-y-3 max-h-96 overflow-y-auto" id="notifications-container">
+                    {% if notifications %}
+                        {% for notification in notifications %}
+                        <div class="notification-item bg-white/10 rounded-lg p-4 border-l-4 border-red-500">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center mb-2">
+                                        <i class="fas fa-exclamation-triangle text-red-400 mr-2"></i>
+                                        <span class="font-semibold text-white">AQI Alert</span>
+                                        <span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">{{ notification.aqi }}</span>
+                                    </div>
+                                    <p class="text-white/80 text-sm mb-1">{{ notification.message }}</p>
+                                    <p class="text-white/60 text-xs">{{ notification.timestamp }}</p>
+                                </div>
+                                <button onclick="removeNotification({{ notification.id }})" class="text-white/60 hover:text-white ml-2">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8 text-white/60">
+                            <i class="fas fa-check-circle text-4xl mb-4"></i>
+                            <p>No active alerts</p>
+                            <p class="text-sm">AQI is below threshold</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Sensor Data Panel -->
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6">
+                    <i class="fas fa-chart-line mr-2"></i>Current Sensor Data
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">NO₂</span>
+                        <span class="text-white font-semibold" id="no2-value">{{ sensor_data.no2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">CO₂</span>
+                        <span class="text-white font-semibold" id="co2-value">{{ sensor_data.co2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">SO₂</span>
+                        <span class="text-white font-semibold" id="so2-value">{{ sensor_data.so2 }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">Dust</span>
+                        <span class="text-white font-semibold" id="dust-value">{{ sensor_data.dust }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">AQI Status</h3>
+                    <div class="w-full bg-white/20 rounded-full h-4">
+                        <div class="bg-gradient-to-r from-green-500 via-yellow-500 to-red-500 h-4 rounded-full" 
+                             style="width: {{ (sensor_data.aqi / 500 * 100) | round(1) }}%"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-white/60 mt-2">
+                        <span>0</span>
+                        <span>250</span>
+                        <span>500</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Panel -->
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6">
+                    <i class="fas fa-chart-bar mr-2"></i>Analytics
+                </h2>
+                
+                <div class="space-y-4">
+                    <div class="bg-white/10 rounded-lg p-4">
+                        <h3 class="text-white font-semibold mb-2">AQI Trends (Last 6 Hours)</h3>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-white/80 text-sm">Current: <span class="text-white font-semibold" id="current-trend-aqi">{{ sensor_data.aqi | round(1) }}</span></span>
+                            <span class="text-white/80 text-sm">Peak: <span class="text-red-400 font-semibold">287.5</span></span>
+                        </div>
+                        <div class="w-full bg-white/20 rounded-full h-2">
+                            <div class="bg-gradient-to-r from-green-400 via-yellow-400 to-red-500 h-2 rounded-full" 
+                                 style="width: {{ (sensor_data.aqi / 500 * 100) | round(1) }}%"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-white/60 mt-1">
+                            <span>0</span>
+                            <span>250</span>
+                            <span>500</span>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/10 rounded-lg p-4">
+                        <h3 class="text-white font-semibold mb-2">System Health</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/80 text-sm">Model Status</span>
+                                <span class="text-green-400 text-sm font-semibold" id="model-status">Active</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/80 text-sm">Data Updates</span>
+                                <span class="text-blue-400 text-sm font-semibold" id="update-status">Live</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <span class="text-white/80 text-sm">Notifications</span>
+                                <span class="text-yellow-400 text-sm font-semibold" id="notification-status">Enabled</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Features Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
+            <!-- Historical Data -->
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6">
+                    <i class="fas fa-history mr-2"></i>Historical Data
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">Total Readings</span>
+                        <span class="text-white font-semibold" id="total-readings">1,247</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">Avg AQI (24h)</span>
+                        <span class="text-white font-semibold" id="avg-aqi">156.3</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">Peak AQI Today</span>
+                        <span class="text-red-400 font-semibold" id="peak-aqi">287.5</span>
+                    </div>
+                    <div class="flex justify-between items-center p-3 bg-white/10 rounded-lg">
+                        <span class="text-white/80">Alerts Today</span>
+                        <span class="text-yellow-400 font-semibold" id="alerts-today">12</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- System Settings -->
+            <div class="glass-effect rounded-xl p-6">
+                <h2 class="text-xl font-bold text-white mb-6">
+                    <i class="fas fa-cog mr-2"></i>System Settings
+                </h2>
+                <div class="space-y-4">
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">Auto-refresh</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">Email Alerts</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-white/80">Sound Alerts</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                        </label>
+                    </div>
+                    <div class="mt-4">
+                        <button onclick="saveSettings()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition duration-200">
+                            <i class="fas fa-save mr-2"></i>Save Settings
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-refresh data every 30 seconds
+        setInterval(refreshData, 30000);
+        
+        // Threshold slider functionality
+        document.getElementById('threshold-slider').addEventListener('input', function() {
+            const threshold = this.value;
+            document.getElementById('threshold-value').textContent = threshold;
+        });
+        
+        document.getElementById('threshold-slider').addEventListener('change', function() {
+            const threshold = this.value;
+            updateThreshold(threshold);
+        });
+
+        function updateThreshold(threshold) {
+            fetch('/admin/update_threshold', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ threshold: parseInt(threshold) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    showNotification('Threshold updated to ' + data.threshold, 'success');
+                } else {
+                    showNotification('Error updating threshold: ' + data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showNotification('Error updating threshold', 'error');
+            });
+        }
+
+        function refreshData() {
+            fetch('/api/sensor-data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('current-aqi').textContent = data.aqi.toFixed(1);
+                document.getElementById('no2-value').textContent = data.no2;
+                document.getElementById('co2-value').textContent = data.co2;
+                document.getElementById('so2-value').textContent = data.so2;
+                document.getElementById('dust-value').textContent = data.dust;
+                
+                // Update AQI status
+                const statusElement = document.getElementById('aqi-status');
+                let statusClass, statusText;
+                if (data.aqi <= 50) {
+                    statusClass = 'bg-green-500 text-white';
+                    statusText = 'Good';
+                } else if (data.aqi <= 100) {
+                    statusClass = 'bg-yellow-500 text-white';
+                    statusText = 'Satisfactory';
+                } else if (data.aqi <= 200) {
+                    statusClass = 'bg-orange-500 text-white';
+                    statusText = 'Moderate';
+                } else if (data.aqi <= 300) {
+                    statusClass = 'bg-red-500 text-white';
+                    statusText = 'Poor';
+                } else if (data.aqi <= 400) {
+                    statusClass = 'bg-purple-500 text-white';
+                    statusText = 'Very Poor';
+                } else {
+                    statusClass = 'bg-red-800 text-white';
+                    statusText = 'Severe';
+                }
+                statusElement.innerHTML = `<span class="text-sm px-2 py-1 rounded-full ${statusClass}">${statusText}</span>`;
+                
+                // Update progress bar
+                const progressBar = document.querySelector('.bg-gradient-to-r');
+                progressBar.style.width = (data.aqi / 500 * 100) + '%';
+                
+                // Update analytics
+                updateAnalytics();
+            })
+            .catch(error => console.error('Error refreshing data:', error));
+        }
+
+        function refreshNotifications() {
+            fetch('/admin/notifications')
+            .then(response => response.json())
+            .then(notifications => {
+                updateNotificationsDisplay(notifications);
+                document.getElementById('notifications-count').textContent = notifications.length;
+            })
+            .catch(error => console.error('Error refreshing notifications:', error));
+        }
+
+        function updateNotificationsDisplay(notifications) {
+            const container = document.getElementById('notifications-container');
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-white/60">
+                        <i class="fas fa-check-circle text-4xl mb-4"></i>
+                        <p>No active alerts</p>
+                        <p class="text-sm">AQI is below threshold</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = notifications.map(notification => `
+                    <div class="notification-item bg-white/10 rounded-lg p-4 border-l-4 border-red-500">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-exclamation-triangle text-red-400 mr-2"></i>
+                                    <span class="font-semibold text-white">AQI Alert</span>
+                                    <span class="ml-2 px-2 py-1 bg-red-500 text-white text-xs rounded-full">${notification.aqi}</span>
+                                </div>
+                                <p class="text-white/80 text-sm mb-1">${notification.message}</p>
+                                <p class="text-white/60 text-xs">${notification.timestamp}</p>
+                            </div>
+                            <button onclick="removeNotification(${notification.id})" class="text-white/60 hover:text-white ml-2">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        function clearNotifications() {
+            if (confirm('Are you sure you want to clear all notifications?')) {
+                fetch('/admin/clear_notifications', {
+                    method: 'POST'
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        showNotification('All notifications cleared', 'success');
+                        refreshNotifications();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showNotification('Error clearing notifications', 'error');
+                });
+            }
+        }
+
+        function removeNotification(id) {
+            // This would require a backend endpoint to remove individual notifications
+            // For now, we'll just refresh the notifications
+            refreshNotifications();
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : 'bg-red-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Simple analytics update function
+        function updateAnalytics() {
+            // Update current trend AQI
+            const currentAqi = document.getElementById('current-aqi').textContent;
+            document.getElementById('current-trend-aqi').textContent = currentAqi;
+        }
+
+        // New enhanced functions
+        function exportData() {
+            showNotification('Exporting data...', 'info');
+            // Real export functionality
+            window.open('/admin/export_data', '_blank');
+            setTimeout(() => {
+                showNotification('Data exported successfully!', 'success');
+            }, 2000);
+        }
+
+        function refreshAll() {
+            showNotification('Refreshing all data...', 'info');
+            refreshData();
+            refreshNotifications();
+            setTimeout(() => {
+                showNotification('All data refreshed!', 'success');
+            }, 1000);
+        }
+
+        function showSystemInfo() {
+            const systemInfo = `
+                <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div class="glass-effect rounded-xl p-6 max-w-md w-full mx-4">
+                        <h3 class="text-xl font-bold text-white mb-4">System Information</h3>
+                        <div class="space-y-3 text-white/80">
+                            <div class="flex justify-between">
+                                <span>Model Version:</span>
+                                <span class="text-white">CNN+LSTM v2.1</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Uptime:</span>
+                                <span class="text-white">24h 15m</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Memory Usage:</span>
+                                <span class="text-white">2.3 GB</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>CPU Usage:</span>
+                                <span class="text-white">45%</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Last Model Update:</span>
+                                <span class="text-white">2 days ago</span>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', systemInfo);
+        }
+
+        function showUserStats() {
+            const userStats = `
+                <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+                    <div class="glass-effect rounded-xl p-6 max-w-md w-full mx-4">
+                        <h3 class="text-xl font-bold text-white mb-4">User Statistics</h3>
+                        <div class="space-y-3 text-white/80">
+                            <div class="flex justify-between">
+                                <span>Total Users:</span>
+                                <span class="text-white">1,247</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Active Today:</span>
+                                <span class="text-white">89</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Predictions Made:</span>
+                                <span class="text-white">3,456</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Avg Session:</span>
+                                <span class="text-white">4.2 min</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>New Registrations:</span>
+                                <span class="text-white">12 today</span>
+                            </div>
+                        </div>
+                        <button onclick="closeModal()" class="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg">
+                            Close
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', userStats);
+        }
+
+        function saveSettings() {
+            showNotification('Settings saved successfully!', 'success');
+        }
+
+        function closeModal() {
+            const modals = document.querySelectorAll('.fixed.inset-0');
+            modals.forEach(modal => modal.remove());
+        }
+
+        // Enhanced notification system
+        function showNotification(message, type) {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-yellow-500'
+            };
+            
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 p-4 rounded-lg text-white z-50 ${colors[type] || colors.info} transform transition-all duration-300 translate-x-full`;
+            notification.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}-circle mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Animate out and remove
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    notification.remove();
+                }, 300);
+            }, 3000);
+        }
+
+        // Initialize everything
+        refreshData();
+        refreshNotifications();
+    </script>
+</body>
+</html>

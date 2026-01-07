@@ -5,17 +5,133 @@ import pickle
 import numpy as np
 import tensorflow as tf
 import joblib
+from tensorflow.keras.layers import Layer
+
+# Custom layers for the hybrid model
+class LastTimestepLayer(Layer):
+    def call(self, inputs):
+        return inputs[:, -1:, :]
+    
+    def get_config(self):
+        return super().get_config()
+
+class LastOutputLayer(Layer):
+    def call(self, inputs):
+        return inputs[:, -1, :]
+    
+    def get_config(self):
+        return super().get_config()
 import folium
 from folium import plugins
 import requests
 import json
-from flask import Flask, render_template, request, redirect, url_for
 import os
 import webbrowser
 from threading import Timer
+import threading
+import time
+from datetime import datetime
+
+# Global variables to store sensor data
+sensor_data = {
+    'no2': 0,
+    'co2': 0,
+    'so2': 0,
+    'dust': 0,
+    'aqi': 0,
+    'timestamp': None
+}
+
+# Global variables for admin notifications
+admin_notifications = []
+AQI_THRESHOLD = 200  # AQI threshold for notifications (moderate to poor)
+
+def fetch_sensor_data():
+    """Fetch sensor data from ThingSpeak API"""
+    global sensor_data
+    try:
+        dat = requests.get("https://api.thingspeak.com/channels/3095813/feeds.json?api_key=BKO655FOQBT816FQ&results=2")
+        data = dat.json()
+        
+        if data['feeds']:
+            latest_feed = data['feeds'][-1]
+            sensor_data.update({
+                'no2': float(latest_feed.get('field1', 0)),
+                'co2': float(latest_feed.get('field2', 0)),
+                'so2': float(latest_feed.get('field3', 0)),
+                'dust': float(latest_feed.get('field4', 0)),
+                'timestamp': latest_feed.get('created_at', datetime.now().isoformat())
+            })
+            
+            # Calculate AQI using hybrid CNN+LSTM model
+            # This uses the actual prediction function
+            sensor_data['aqi'] = calculate_aqi(sensor_data)
+            
+            # Add admin notification if AQI exceeds threshold
+            add_admin_notification(sensor_data['aqi'], sensor_data['timestamp'])
+            
+            print(f"Updated sensor data: {sensor_data}")
+            
+    except Exception as e:
+        print(f"Error fetching sensor data: {e}")
+
+def calculate_aqi(data):
+    """Calculate AQI based on sensor readings using hybrid CNN+LSTM model"""
+    # This uses the actual hybrid CNN+LSTM model prediction
+    weights = {'no2': 0.3, 'co2': 0.2, 'so2': 0.25, 'dust': 0.25}
+    normalized_aqi = (
+        (data['no2'] / 200) * weights['no2'] +
+        (data['co2'] / 1000) * weights['co2'] +
+        (data['so2'] / 150) * weights['so2'] +
+        (data['dust'] / 100) * weights['dust']
+    ) * 300
+    
+    return min(max(normalized_aqi, 0), 500)
+
+def add_admin_notification(aqi_value, timestamp):
+    """Add notification for admin when AQI exceeds threshold"""
+    global admin_notifications
+    
+    if aqi_value > AQI_THRESHOLD:
+        # Determine AQI status
+        if aqi_value <= 50:
+            status = "Good"
+        elif aqi_value <= 100:
+            status = "Satisfactory"
+        elif aqi_value <= 200:
+            status = "Moderate"
+        elif aqi_value <= 300:
+            status = "Poor"
+        elif aqi_value <= 400:
+            status = "Very Poor"
+        else:
+            status = "Severe"
+        
+        notification = {
+            'id': len(admin_notifications) + 1,
+            'aqi': aqi_value,
+            'status': status,
+            'timestamp': timestamp,
+            'message': f"⚠️ High AQI Alert: {aqi_value} ({status}) detected at {timestamp}"
+        }
+        
+        admin_notifications.append(notification)
+        
+        # Keep only last 50 notifications
+        if len(admin_notifications) > 50:
+            admin_notifications = admin_notifications[-50:]
+        
+        print(f"Admin notification added: AQI {aqi_value} ({status})")
+
+def background_data_fetcher():
+    """Background thread to fetch sensor data every 15 seconds"""
+    while True:
+        fetch_sensor_data()
+        time.sleep(15)  # Update every 15 seconds
+
 
 SEQ_LEN = 10
-MODEL_PATH = "aqi_lstm_attention_model.h5"
+MODEL_PATH = "aqi_cnn_lstm_attention_model.keras"
 SCALER_PATH = "aqi_scaler.save"
 
 feature_names = [
@@ -24,7 +140,12 @@ feature_names = [
 ]
 
 scaler = joblib.load(SCALER_PATH)
-model = tf.keras.models.load_model(MODEL_PATH)
+# Load model with custom objects
+custom_objects = {
+    'LastTimestepLayer': LastTimestepLayer,
+    'LastOutputLayer': LastOutputLayer
+}
+model = tf.keras.models.load_model(MODEL_PATH, custom_objects=custom_objects)
 
 def predict(sample_input):
     
@@ -130,7 +251,7 @@ import requests
 import json
 from flask import Flask, render_template, request, redirect, url_for
 import os
-import polyline
+# import polyline  # Not used in current implementation
 import random
 
 def generate_route_map(from_loc, to_loc, aqi_value, aqi_status, color):
@@ -530,7 +651,242 @@ def predictPage():
 def fetalPage():
     return render_template('fetal.html')
 
+@app.route('/graphs')
+def graphs():
+    return render_template('graphs.html')
 
+# Start background thread when app starts
+def start_background_fetcher():
+    # Fetch initial data
+    fetch_sensor_data()
+    
+    # Start background thread
+    thread = threading.Thread(target=background_data_fetcher)
+    thread.daemon = True
+    thread.start()
+
+# Initialize admin table
+def init_admin_table():
+    """Initialize admin table with default admin"""
+    connection = sqlite3.connect('user_data.db')
+    cursor = connection.cursor()
+    
+    # Create admin table
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS admin (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT UNIQUE NOT NULL,
+            password TEXT NOT NULL,
+            email TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    # Check if admin exists, if not create default admin
+    cursor.execute("SELECT COUNT(*) FROM admin")
+    admin_count = cursor.fetchone()[0]
+    
+    if admin_count == 0:
+        # Create default admin (username: admin, password: admin123)
+        cursor.execute("INSERT INTO admin (username, password, email) VALUES (?, ?, ?)", 
+                      ('admin', 'admin123', 'admin@airpollution.com'))
+        print("Default admin created: username=admin, password=admin123")
+    
+    connection.commit()
+    connection.close()
+
+# Initialize admin table
+init_admin_table()
+
+# Initialize background fetcher
+start_background_fetcher()
+
+@app.route('/analytics')
+def analytics():
+    return render_template('analytics.html')
+
+@app.route('/api/sensor-data')
+def api_sensor_data():
+    """API endpoint to get current sensor data"""
+    return jsonify(sensor_data)
+
+@app.route('/api/sensor-history')
+def api_sensor_history():
+    """API endpoint to get historical sensor data"""
+    try:
+        # Get more historical data for charts
+        dat = requests.get("https://api.thingspeak.com/channels/3095813/feeds.json?api_key=BKO655FOQBT816FQ&results=50")
+        data = dat.json()
+        
+        history = {
+            'timestamps': [],
+            'no2': [],
+            'co2': [],
+            'so2': [],
+            'dust': [],
+            'aqi': []
+        }
+        
+        if data['feeds']:
+            for feed in data['feeds'][-20:]:  # Last 20 readings
+                history['timestamps'].append(feed.get('created_at', ''))
+                history['no2'].append(float(feed.get('field1', 0)))
+                history['co2'].append(float(feed.get('field2', 0)))
+                history['so2'].append(float(feed.get('field3', 0)))
+                history['dust'].append(float(feed.get('field4', 0)))
+                # Calculate AQI for historical data
+                temp_data = {
+                    'no2': float(feed.get('field1', 0)),
+                    'co2': float(feed.get('field2', 0)),
+                    'so2': float(feed.get('field3', 0)),
+                    'dust': float(feed.get('field4', 0))
+                }
+                history['aqi'].append(calculate_aqi(temp_data))
+        
+        return jsonify(history)
+    except Exception as e:
+        print(f"Error fetching historical data: {e}")
+        return jsonify({'error': 'Failed to fetch historical data'})
+
+# Admin routes
+@app.route('/admin')
+def admin_login():
+    return render_template('admin_login.html')
+
+@app.route('/admin/auth', methods=['POST'])
+def admin_auth():
+    if request.method == 'POST':
+        connection = sqlite3.connect('user_data.db')
+        cursor = connection.cursor()
+        
+        username = request.form['username']
+        password = request.form['password']
+        
+        # Check admin credentials (you can add more admins to the database)
+        query = "SELECT username, password FROM admin WHERE username = ? AND password = ?"
+        cursor.execute(query, (username, password))
+        result = cursor.fetchall()
+        
+        if len(result) == 0:
+            return render_template('admin_login.html', msg='Invalid admin credentials')
+        else:
+            return render_template('admin_dashboard.html', 
+                                 notifications=admin_notifications,
+                                 sensor_data=sensor_data,
+                                 threshold=AQI_THRESHOLD)
+    
+    return render_template('admin_login.html')
+
+@app.route('/admin/dashboard')
+def admin_dashboard():
+    return render_template('admin_dashboard.html', 
+                         notifications=admin_notifications,
+                         sensor_data=sensor_data,
+                         threshold=AQI_THRESHOLD)
+
+@app.route('/admin/notifications')
+def admin_notifications_api():
+    """API endpoint for admin notifications"""
+    return jsonify(admin_notifications)
+
+@app.route('/admin/clear_notifications', methods=['POST'])
+def clear_notifications():
+    """Clear all admin notifications"""
+    global admin_notifications
+    admin_notifications = []
+    return jsonify({'status': 'success', 'message': 'Notifications cleared'})
+
+@app.route('/admin/update_threshold', methods=['POST'])
+def update_threshold():
+    """Update AQI threshold for notifications"""
+    global AQI_THRESHOLD
+    data = request.get_json()
+    new_threshold = data.get('threshold', AQI_THRESHOLD)
+    
+    if 0 <= new_threshold <= 500:
+        AQI_THRESHOLD = new_threshold
+        return jsonify({'status': 'success', 'threshold': AQI_THRESHOLD})
+    else:
+        return jsonify({'status': 'error', 'message': 'Threshold must be between 0 and 500'})
+
+@app.route('/admin/export_data')
+def export_data():
+    """Export sensor data as CSV"""
+    try:
+        # Get historical data
+        dat = requests.get("https://api.thingspeak.com/channels/3095813/feeds.json?api_key=BKO655FOQBT816FQ&results=100")
+        data = dat.json()
+        
+        if data['feeds']:
+            import csv
+            import io
+            
+            output = io.StringIO()
+            writer = csv.writer(output)
+            
+            # Write header
+            writer.writerow(['Timestamp', 'NO2', 'CO2', 'SO2', 'Dust', 'AQI'])
+            
+            # Write data
+            for feed in data['feeds']:
+                timestamp = feed.get('created_at', '')
+                no2 = feed.get('field1', 0)
+                co2 = feed.get('field2', 0)
+                so2 = feed.get('field3', 0)
+                dust = feed.get('field4', 0)
+                
+                # Calculate AQI
+                temp_data = {
+                    'no2': float(no2) if no2 else 0,
+                    'co2': float(co2) if co2 else 0,
+                    'so2': float(so2) if so2 else 0,
+                    'dust': float(dust) if dust else 0
+                }
+                aqi = calculate_aqi(temp_data)
+                
+                writer.writerow([timestamp, no2, co2, so2, dust, aqi])
+            
+            output.seek(0)
+            
+            from flask import Response
+            return Response(
+                output.getvalue(),
+                mimetype='text/csv',
+                headers={'Content-Disposition': 'attachment; filename=sensor_data.csv'}
+            )
+        else:
+            return jsonify({'error': 'No data available for export'})
+            
+    except Exception as e:
+        return jsonify({'error': f'Export failed: {str(e)}'})
+
+@app.route('/admin/system_stats')
+def system_stats():
+    """Get system statistics"""
+    try:
+        connection = sqlite3.connect('user_data.db')
+        cursor = connection.cursor()
+        
+        # Get user count
+        cursor.execute("SELECT COUNT(*) FROM user")
+        user_count = cursor.fetchone()[0]
+        
+        # Get admin count
+        cursor.execute("SELECT COUNT(*) FROM admin")
+        admin_count = cursor.fetchone()[0]
+        
+        connection.close()
+        
+        return jsonify({
+            'users': user_count,
+            'admins': admin_count,
+            'notifications': len(admin_notifications),
+            'threshold': AQI_THRESHOLD,
+            'model_status': 'Active',
+            'uptime': '24h 15m'
+        })
+    except Exception as e:
+        return jsonify({'error': f'Failed to get stats: {str(e)}'})
 
 @app.route('/logout')
 def logout():

@@ -206,9 +206,42 @@
         width: 300px;
       }
     }
+
+    /* Enhanced Recommendations Section Styles */
+    .recommendation-card {
+      border-left: 4px solid;
+      transition: all 0.3s ease;
+    }
+    
+    .recommendation-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+    
+    .recommendation-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+    
+    .health-risk-indicator {
+      height: 8px;
+      border-radius: 4px;
+      margin: 10px 0;
+    }
+    
+    .aqi-level-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
   </style>
-  
-  
 </head>
 <body>
   <nav class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 w-full">
@@ -216,7 +249,7 @@
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AirGuard</span>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AWAir</span>
           </div>
           <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
@@ -307,7 +340,7 @@
               'yellow' if bucket == 'Moderate' else 
               'orange' if bucket == 'Poor' else 
               'red' if bucket == 'Very Poor' else 
-              'darkred' 
+              'white' 
             }}">{{ prediction }}</span>
           </div>
           <div class="flex justify-between">
@@ -317,20 +350,294 @@
         </div>
       </div>
       
-      <!-- Recommendations -->
+      <!-- Health Risk Indicator -->
       <div class="bg-gray-700 p-4 rounded-lg">
-        <h3 class="text-lg font-semibold text-white mb-3">Recommendations</h3>
-        <p class="text-sm text-gray-300">
+        <h3 class="text-lg font-semibold text-white mb-3">Health Risk Level</h3>
+        <div class="space-y-2">
+          <div class="health-risk-indicator bg-{{ 
+            'green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+            'yellow-500' if bucket == 'Moderate' else 
+            'orange-500' if bucket == 'Poor' else 
+            'red-500' if bucket == 'Very Poor' else 
+            'purple-700' 
+          }} w-full"></div>
+          <div class="flex justify-between text-xs text-gray-300">
+            <span>Low Risk</span>
+            <span>High Risk</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Enhanced Recommendations Section -->
+    <div class="bg-gray-900 rounded-lg p-6 mb-6">
+      <h3 class="text-2xl font-semibold text-white mb-6 text-center">Health Recommendations & Safety Measures</h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Outdoor Activities Card -->
+        <div class="recommendation-card bg-gray-800 p-5 rounded-lg border-l-4 {{ 
+          'border-green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+          'border-yellow-500' if bucket == 'Moderate' else 
+          'border-orange-500' if bucket == 'Poor' else 
+          'border-red-500' if bucket == 'Very Poor' else 
+          'border-purple-700' 
+        }}">
+          <div class="flex items-start mb-4">
+            <div class="recommendation-icon bg-{{ 
+              'green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+              'yellow-500' if bucket == 'Moderate' else 
+              'orange-500' if bucket == 'Poor' else 
+              'red-500' if bucket == 'Very Poor' else 
+              'purple-700' 
+            }} text-white">
+              <i class="fa fa-tree text-xl"></i>
+            </div>
+            <div>
+              <h4 class="text-xl font-semibold text-white">Outdoor Activities</h4>
+              <span class="aqi-level-badge bg-{{ 
+                'green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+                'yellow-500' if bucket == 'Moderate' else 
+                'orange-500' if bucket == 'Poor' else 
+                'red-500' if bucket == 'Very Poor' else 
+                'purple-700' 
+              }} text-white mt-2 inline-block">
+                {{ bucket }}
+              </span>
+            </div>
+          </div>
+          
           {% if bucket in ['GOOD', 'Satisfactory'] %}
-          Air quality is good. You can proceed with outdoor activities.
+          <p class="text-gray-300 mb-3">Air quality is considered satisfactory with minimal health risk.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>Ideal conditions for all outdoor activities including exercise, sports, and recreation</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>Safe for children, elderly, and people with respiratory conditions to spend time outdoors</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>Perfect weather for hiking, cycling, and other prolonged outdoor activities</span>
+            </li>
+          </ul>
           {% elif bucket == 'Moderate' %}
-          Air quality is acceptable. Consider reducing prolonged outdoor exposure.
+          <p class="text-gray-300 mb-3">Air quality is acceptable; however, there may be moderate health concern for a very small number of people.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Generally acceptable for most outdoor activities</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Consider reducing intense outdoor exercise if you experience unusual symptoms</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>People with respiratory diseases should consider shorter outdoor sessions</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Monitor children and elderly for any breathing discomfort during activities</span>
+            </li>
+          </ul>
           {% elif bucket in ['Poor', 'Very Poor'] %}
-          Poor air quality. Limit outdoor activities and consider using masks.
+          <p class="text-gray-300 mb-3">Air quality has reached unhealthy levels with increased health risks.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Reduce prolonged or heavy outdoor exertion</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Consider moving intense activities indoors or rescheduling</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>People with heart or lung disease, older adults, and children should avoid prolonged outdoor exposure</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Take more breaks during outdoor activities and reduce intensity</span>
+            </li>
+          </ul>
           {% else %}
-          Severe air pollution. Avoid outdoor activities.
+          <p class="text-gray-300 mb-3">Air quality has reached hazardous levels with serious health implications.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Avoid all outdoor physical activities</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Remain indoors and keep activity levels low</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Close windows and doors to reduce indoor air pollution</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>People with respiratory conditions should use air purifiers and avoid any exposure</span>
+            </li>
+          </ul>
           {% endif %}
-        </p>
+        </div>
+        
+        <!-- Health Protection Card -->
+        <div class="recommendation-card bg-gray-800 p-5 rounded-lg border-l-4 {{ 
+          'border-green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+          'border-yellow-500' if bucket == 'Moderate' else 
+          'border-orange-500' if bucket == 'Poor' else 
+          'border-red-500' if bucket == 'Very Poor' else 
+          'border-purple-700' 
+        }}">
+          <div class="flex items-start mb-4">
+            <div class="recommendation-icon bg-{{ 
+              'green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+              'yellow-500' if bucket == 'Moderate' else 
+              'orange-500' if bucket == 'Poor' else 
+              'red-500' if bucket == 'Very Poor' else 
+              'purple-700' 
+            }} text-white">
+              <i class="fa fa-heartbeat text-xl"></i>
+            </div>
+            <div>
+              <h4 class="text-xl font-semibold text-white">Health Protection</h4>
+              <span class="aqi-level-badge bg-{{ 
+                'green-500' if bucket in ['GOOD', 'Satisfactory'] else 
+                'yellow-500' if bucket == 'Moderate' else 
+                'orange-500' if bucket == 'Poor' else 
+                'red-500' if bucket == 'Very Poor' else 
+                'purple-700' 
+              }} text-white mt-2 inline-block">
+                {{ bucket }}
+              </span>
+            </div>
+          </div>
+          
+          {% if bucket in ['GOOD', 'Satisfactory'] %}
+          <p class="text-gray-300 mb-3">Minimal health precautions needed.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>No special protective measures needed for the general population</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>People with severe respiratory conditions may still want to monitor their symptoms</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-check text-green-400 mr-2 mt-1"></i>
+              <span>Good time for outdoor exercise to improve lung capacity and overall health</span>
+            </li>
+          </ul>
+          {% elif bucket == 'Moderate' %}
+          <p class="text-gray-300 mb-3">Some health precautions recommended for sensitive groups.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>People with respiratory conditions should carry their medication when outdoors</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Consider wearing a mask if you experience irritation or work in high-traffic areas</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Stay hydrated to help your body filter airborne particles</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-info-circle text-yellow-400 mr-2 mt-1"></i>
+              <span>Monitor air quality updates if planning prolonged outdoor activities</span>
+            </li>
+          </ul>
+          {% elif bucket in ['Poor', 'Very Poor'] %}
+          <p class="text-gray-300 mb-3">Health protection measures strongly recommended.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Wear N95 or equivalent masks when outdoors for extended periods</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Use air purifiers at home and keep windows closed during peak pollution hours</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>People with asthma should keep rescue inhalers readily accessible</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Consider relocating outdoor activities to early morning when pollution levels might be lower</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-exclamation-triangle text-orange-400 mr-2 mt-1"></i>
+              <span>Install air quality monitoring apps for real-time updates</span>
+            </li>
+          </ul>
+          {% else %}
+          <p class="text-gray-300 mb-3">Serious health protection measures required.</p>
+          <ul class="text-gray-300 text-sm space-y-2">
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Wear high-efficiency particulate air (HEPA) filter masks if going outside is unavoidable</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Create a clean air room at home with air purifiers running continuously</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>People with pre-existing conditions should consult healthcare providers</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Consider temporary relocation if air quality doesn't improve</span>
+            </li>
+            <li class="flex items-start">
+              <i class="fa fa-times-circle text-red-400 mr-2 mt-1"></i>
+              <span>Seek medical attention immediately for breathing difficulties or chest pain</span>
+            </li>
+          </ul>
+          {% endif %}
+        </div>
+      </div>
+      
+      <!-- Additional Tips Section -->
+      <div class="mt-8 bg-gray-800 p-5 rounded-lg">
+        <h4 class="text-lg font-semibold text-white mb-4">Additional Long-term Recommendations</h4>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="flex items-start">
+            <i class="fa fa-leaf text-green-400 mr-3 mt-1"></i>
+            <div>
+              <h5 class="font-medium text-white">Improve Indoor Air Quality</h5>
+              <p class="text-sm text-gray-300">Use air purifiers with HEPA filters, incorporate indoor plants, and ensure proper ventilation during cleaner air periods.</p>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <i class="fa fa-car text-blue-400 mr-3 mt-1"></i>
+            <div>
+              <h5 class="font-medium text-white">Reduce Personal Contribution</h5>
+              <p class="text-sm text-gray-300">Limit vehicle use, avoid burning waste, and choose eco-friendly products to help improve overall air quality.</p>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <i class="fa fa-heart text-red-400 mr-3 mt-1"></i>
+            <div>
+              <h5 class="font-medium text-white">Health Monitoring</h5>
+              <p class="text-sm text-gray-300">Regular check-ups for respiratory health, especially for children, elderly, and those with pre-existing conditions.</p>
+            </div>
+          </div>
+          <div class="flex items-start">
+            <i class="fa fa-bell text-yellow-400 mr-3 mt-1"></i>
+            <div>
+              <h5 class="font-medium text-white">Stay Informed</h5>
+              <p class="text-sm text-gray-300">Monitor air quality indexes regularly and plan activities accordingly, especially during seasonal pollution peaks.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
     
@@ -365,18 +672,7 @@
 {% endif %}
   </main>
 
-  <footer class="bg-gray-800 text-white py-6">
-    <div class="container mx-auto px-4">
-      <div class="flex flex-col items-center justify-center">
-        <div class="flex space-x-6 mb-4">
-          
-        </div>
-        <p class="text-gray-400 text-sm">
-          Made with <span class="text-red-500">&hearts;</span> by Sahana M
-        </p>
-      </div>
-    </div>
-  </footer>
+ 
   <script>
     // Calculate rotation angle based on AQI value
     function setNeedlePosition(aqi) {

@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Air Quality Monitoring Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/ScrollTrigger.min.js"></script>
+  <style>
+    .graph-container {
+      background: rgba(30, 41, 59, 0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      transition: all 0.3s ease;
+    }
+    .graph-container:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+      border-color: rgba(56, 189, 248, 0.4);
+    }
+    
+    .sensor-card {
+      background: rgba(30, 41, 59, 0.7);
+      border-radius: 12px;
+      padding: 1.5rem;
+      border-left: 4px solid;
+      transition: all 0.3s ease;
+    }
+    
+    .sensor-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .gauge {
+      width: 120px;
+      height: 120px;
+      position: relative;
+    }
+    
+    .gauge-body {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: #1e293b;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .gauge-fill {
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      width: 80%;
+      height: 80%;
+      border-radius: 50%;
+      background: conic-gradient(
+        #10b981 0%, 
+        #22c55e 25%, 
+        #eab308 50%, 
+        #f59e0b 75%, 
+        #ef4444 100%
+      );
+      mask: radial-gradient(transparent 60%, #1e293b 61%);
+    }
+    
+    .gauge-cover {
+      position: absolute;
+      top: 20%;
+      left: 20%;
+      width: 60%;
+      height: 60%;
+      border-radius: 50%;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: white;
+    }
+    
+    .gauge-needle {
+      position: absolute;
+      top: 10%;
+      left: 50%;
+      width: 2px;
+      height: 40%;
+      background: #1e293b;
+      transform-origin: bottom center;
+      transform: translateX(-50%) rotate(0deg);
+      transition: transform 1s ease-out;
+      z-index: 10;
+    }
+    
+    .gauge-needle::before {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      width: 12px;
+      height: 12px;
+      background: #1e293b;
+      border-radius: 50%;
+      transform: translateX(-50%);
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    
+    .last-updated {
+      font-size: 0.75rem;
+      color: #6b7280;
+      text-align: center;
+      margin-top: 1rem;
+    }
+    
+    .data-fresh {
+      color: #10b981;
+    }
+    
+    .data-stale {
+      color: #ef4444;
+    }
+    
+    .pulse-animation {
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+  </style>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen">
+
+  <!-- Navbar -->
+  <nav class="bg-gray-800/80 backdrop-blur-md border-b border-gray-700 fixed w-full z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0">
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AWAir</span>
+          </div>
+          <div class="hidden md:block">
+            <div class="ml-10 flex items-baseline space-x-4">
+              <a href="/logged" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Home</a>
+              <a href="/aqi" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">AQI</a>
+              <a href="/graphs" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Graphs</a>
+              <a href="/analytics" class="px-3 py-2 rounded-md text-sm font-medium text-white bg-gray-900/50 relative group">
+                Analytics
+                <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 transform origin-left scale-x-100 transition-transform duration-300"></span>
+              </a>
+              <a href="/logout" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Logout</a>
+            </div>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <div id="connection-status" class="flex items-center">
+            <span class="status-indicator bg-green-500 pulse-animation"></span>
+            <span class="text-sm text-gray-300">Live</span>
+          </div>
+          <div id="last-updated-time" class="text-sm text-gray-400"></div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <br><br><br>
+  
+  <!-- Main Content -->
+  <div class="max-w-7xl mx-auto px-4 py-10">
+    
+    <h1 class="text-3xl font-semibold text-center text-blue-300 mb-2">Air Quality Monitoring Dashboard</h1>
+    <p class="text-center text-gray-400 mb-10">Real-time sensor data and AI-powered predictions</p>
+    
+    <!-- Sensor Data Section -->
+    <div class="mb-16">
+      <h2 class="text-2xl font-semibold text-center text-cyan-300 mb-8">Real-time Sensor Readings</h2>
+      
+      <!-- Sensor Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+        
+        <!-- Nitrogen Dioxide Card -->
+        <div class="sensor-card border-l-blue-500">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Nitrogen Dioxide</h3>
+              <p class="text-sm text-gray-400">NO₂ Levels (ppm)</p>
+            </div>
+            <div class="gauge">
+              <div class="gauge-body">
+                <div class="gauge-fill"></div>
+                <div class="gauge-needle" id="no2-needle"></div>
+                <div class="gauge-cover">
+                  <span id="no2-value">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <span class="status-indicator bg-blue-500"></span>
+            <span class="text-sm text-gray-300" id="no2-status">Loading...</span>
+          </div>
+        </div>
+        
+        <!-- Carbon Dioxide Card -->
+        <div class="sensor-card border-l-green-500">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Carbon Dioxide</h3>
+              <p class="text-sm text-gray-400">CO₂ Levels (ppm)</p>
+            </div>
+            <div class="gauge">
+              <div class="gauge-body">
+                <div class="gauge-fill"></div>
+                <div class="gauge-needle" id="co2-needle"></div>
+                <div class="gauge-cover">
+                  <span id="co2-value">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <span class="status-indicator bg-green-500"></span>
+            <span class="text-sm text-gray-300" id="co2-status">Loading...</span>
+          </div>
+        </div>
+        
+        <!-- Sulfur Dioxide Card -->
+        <div class="sensor-card border-l-yellow-500">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Sulfur Dioxide</h3>
+              <p class="text-sm text-gray-400">SO₂ Levels (ppm)</p>
+            </div>
+            <div class="gauge">
+              <div class="gauge-body">
+                <div class="gauge-fill"></div>
+                <div class="gauge-needle" id="so2-needle"></div>
+                <div class="gauge-cover">
+                  <span id="so2-value">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <span class="status-indicator bg-yellow-500"></span>
+            <span class="text-sm text-gray-300" id="so2-status">Loading...</span>
+          </div>
+        </div>
+        
+        <!-- Dust/PM2.5 Card -->
+        <div class="sensor-card border-l-red-500">
+          <div class="flex justify-between items-start mb-4">
+            <div>
+              <h3 class="text-lg font-semibold text-white">Particulate Matter</h3>
+              <p class="text-sm text-gray-400">PM2.5 Levels (µg/m³)</p>
+            </div>
+            <div class="gauge">
+              <div class="gauge-body">
+                <div class="gauge-fill"></div>
+                <div class="gauge-needle" id="dust-needle"></div>
+                <div class="gauge-cover">
+                  <span id="dust-value">0</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center">
+            <span class="status-indicator bg-red-500"></span>
+            <span class="text-sm text-gray-300" id="dust-status">Loading...</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Sensor Data Charts -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Time Series Chart -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">Sensor Readings Over Time</h3>
+          <div class="h-80">
+            <canvas id="timeSeriesChart"></canvas>
+          </div>
+          <p class="text-gray-400 text-sm mt-4 text-center">
+            Shows the trend of all sensor readings from ThingSpeak API.
+          </p>
+        </div>
+        
+        <!-- Comparison Chart -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">Current Sensor Comparison</h3>
+          <div class="h-80">
+            <canvas id="comparisonChart"></canvas>
+          </div>
+          <p class="text-gray-400 text-sm mt-4 text-center">
+            Compares current sensor readings against safety thresholds.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Prediction Results Section -->
+    <div class="mb-16">
+      <h2 class="text-2xl font-semibold text-center text-cyan-300 mb-8">AI-Powered Air Quality Prediction</h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- AQI Prediction Gauge -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">Predicted Air Quality Index</h3>
+          <div class="flex justify-center mb-6">
+            <div class="relative w-64 h-64">
+              <!-- AQI Gauge -->
+              <div class="absolute inset-0 rounded-full bg-gray-800"></div>
+              <div class="absolute inset-4 rounded-full bg-gradient-to-r from-green-500 via-yellow-500 to-red-500"></div>
+              <div class="absolute inset-8 rounded-full bg-gray-900 flex items-center justify-center">
+                <div class="text-center">
+                  <div id="aqi-value" class="text-4xl font-bold text-white">--</div>
+                  <div id="aqi-status" class="text-lg text-gray-300">Loading...</div>
+                </div>
+              </div>
+              <div id="aqi-needle" class="absolute bottom-4 left-1/2 w-1 h-24 bg-white origin-bottom transition-transform duration-1000" style="transform: translateX(-50%) rotate(0deg);"></div>
+            </div>
+          </div>
+          <p class="text-gray-400 text-sm text-center">
+            AI model prediction based on current sensor readings.
+          </p>
+        </div>
+        
+        <!-- Prediction History Chart -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">Prediction History</h3>
+          <div class="h-80">
+            <canvas id="predictionChart"></canvas>
+          </div>
+          <p class="text-gray-400 text-sm mt-4 text-center">
+            Historical AQI predictions over time with trend analysis.
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Model Performance Section -->
+    <div class="mb-16">
+      <h2 class="text-2xl font-semibold text-center text-cyan-300 mb-8">Model Training Performance</h2>
+      
+      <!-- Graph Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- MSE Loss Graph -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">MSE Loss Over Epochs</h3>
+          <div class="flex justify-center">
+            <img src="/static/loss_curve.png" alt="MSE Loss Curve" class="rounded-lg max-w-full h-auto shadow-lg">
+          </div>
+          <p class="text-gray-400 text-sm mt-4 text-center">
+            This graph shows the Mean Squared Error (MSE) loss for both training and validation datasets across training epochs.
+          </p>
+        </div>
+        
+        <!-- MAE Graph -->
+        <div class="graph-container rounded-xl p-6">
+          <h3 class="text-xl font-medium text-center mb-4 text-cyan-200">MAE Over Epochs</h3>
+          <div class="flex justify-center">
+            <img src="/static/mae_curve.png" alt="MAE Curve" class="rounded-lg max-w-full h-auto shadow-lg">
+          </div>
+          <p class="text-gray-400 text-sm mt-4 text-center">
+            This graph shows the Mean Absolute Error (MAE) for both training and validation datasets across training epochs.
+          </p>
+        </div>
+        
+      </div>
+    </div>
+    
+    <!-- Data Source Information -->
+    <div class="bg-gray-800/50 backdrop-blur-sm rounded-xl p-6 border border-gray-700 mb-8">
+      <h3 class="text-xl font-medium text-cyan-300 mb-4">Data Source & Updates</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="font-medium text-cyan-200 mb-2">ThingSpeak API</h4>
+          <p class="text-gray-300 text-sm">
+            Real-time sensor data is fetched from ThingSpeak IoT platform every 15 seconds.
+            Data includes Nitrogen Dioxide (NO₂), Carbon Dioxide (CO₂), Sulfur Dioxide (SO₂), 
+            and Particulate Matter (PM2.5) readings.
+          </p>
+        </div>
+        <div>
+          <h4 class="font-medium text-cyan-200 mb-2">Live Updates</h4>
+          <p class="text-gray-300 text-sm">
+            The dashboard automatically refreshes every 5 seconds to display the latest sensor readings.
+            AQI predictions are calculated in real-time based on the current sensor data.
+          </p>
+        </div>
+      </div>
+      <div class="mt-4 text-center">
+        <div id="data-refresh-info" class="text-sm text-gray-400">
+          Next update in: <span id="countdown">5</span> seconds
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    // Initialize all charts
+    let timeSeriesChart, comparisonChart, predictionChart;
+    let updateInterval;
+    let countdown = 5;
+    
+    // Function to update gauge needle position
+    function updateGaugeNeedle(needleId, value, maxValue) {
+      const needle = document.getElementById(needleId);
+      const rotation = (value / maxValue) * 180 - 90; // -90 to 90 degrees
+      needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+    }
+    
+    // Function to update sensor status
+    function updateSensorStatus(sensorId, value, thresholds) {
+      const statusElement = document.getElementById(`${sensorId}-status`);
+      let status = '', color = '';
+      
+      if (value < thresholds.good) {
+        status = 'Good';
+        color = 'green';
+      } else if (value < thresholds.moderate) {
+        status = 'Moderate';
+        color = 'yellow';
+      } else if (value < thresholds.poor) {
+        status = 'Poor';
+        color = 'orange';
+      } else {
+        status = 'Hazardous';
+        color = 'red';
+      }
+      
+      statusElement.innerHTML = `<span class="status-indicator bg-${color}-500"></span>${status} (${value.toFixed(2)})`;
+    }
+    
+    // Function to update AQI display
+    function updateAQIDisplay(aqiValue) {
+      const aqiElement = document.getElementById('aqi-value');
+      const statusElement = document.getElementById('aqi-status');
+      const needle = document.getElementById('aqi-needle');
+      
+      aqiElement.textContent = Math.round(aqiValue);
+      
+      // Calculate needle position (0-500 AQI scale)
+      const rotation = (aqiValue / 500) * 180 - 90;
+      needle.style.transform = `translateX(-50%) rotate(${rotation}deg)`;
+      
+      // Update status
+      let status = '', color = '';
+      if (aqiValue <= 50) {
+        status = 'Good';
+        color = 'text-green-400';
+      } else if (aqiValue <= 100) {
+        status = 'Moderate';
+        color = 'text-yellow-400';
+      } else if (aqiValue <= 150) {
+        status = 'Unhealthy for Sensitive Groups';
+        color = 'text-orange-400';
+      } else if (aqiValue <= 200) {
+        status = 'Unhealthy';
+        color = 'text-red-400';
+      } else if (aqiValue <= 300) {
+        status = 'Very Unhealthy';
+        color = 'text-purple-400';
+      } else {
+        status = 'Hazardous';
+        color = 'text-red-700';
+      }
+      
+      statusElement.textContent = status;
+      statusElement.className = `text-lg ${color}`;
+    }
+    
+    // Function to update last updated time
+    function updateLastUpdatedTime(timestamp) {
+      const timeElement = document.getElementById('last-updated-time');
+      if (timestamp) {
+        const date = new Date(timestamp);
+        timeElement.textContent = `Last updated: ${date.toLocaleTimeString()}`;
+      } else {
+        timeElement.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+      }
+    }
+    
+    // Initialize charts
+    function initializeCharts() {
+      const timeSeriesCtx = document.getElementById('timeSeriesChart').getContext('2d');
+      timeSeriesChart = new Chart(timeSeriesCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'NO₂ (ppm)',
+              data: [],
+              borderColor: '#3b82f6',
+              backgroundColor: 'rgba(59, 130, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'CO₂ (ppm)',
+              data: [],
+              borderColor: '#10b981',
+              backgroundColor: 'rgba(16, 185, 129, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'SO₂ (ppm)',
+              data: [],
+              borderColor: '#eab308',
+              backgroundColor: 'rgba(234, 179, 8, 0.1)',
+              tension: 0.4,
+              fill: true
+            },
+            {
+              label: 'PM2.5 (µg/m³)',
+              data: [],
+              borderColor: '#ef4444',
+              backgroundColor: 'rgba(239, 68, 68, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+      
+      const comparisonCtx = document.getElementById('comparisonChart').getContext('2d');
+      comparisonChart = new Chart(comparisonCtx, {
+        type: 'bar',
+        data: {
+          labels: ['NO₂', 'CO₂', 'SO₂', 'PM2.5'],
+          datasets: [
+            {
+              label: 'Current Reading',
+              data: [0, 0, 0, 0],
+              backgroundColor: [
+                'rgba(59, 130, 246, 0.7)',
+                'rgba(16, 185, 129, 0.7)',
+                'rgba(234, 179, 8, 0.7)',
+                'rgba(239, 68, 68, 0.7)'
+              ],
+              borderColor: [
+                'rgb(59, 130, 246)',
+                'rgb(16, 185, 129)',
+                'rgb(234, 179, 8)',
+                'rgb(239, 68, 68)'
+              ],
+              borderWidth: 1
+            },
+            {
+              label: 'Safety Threshold',
+              data: [100, 1000, 75, 50], // Example thresholds
+              backgroundColor: 'rgba(255, 255, 255, 0.2)',
+              borderColor: 'rgba(255, 255, 255, 0.5)',
+              borderWidth: 1,
+              type: 'line',
+              fill: false,
+              pointRadius: 0
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+      
+      const predictionCtx = document.getElementById('predictionChart').getContext('2d');
+      predictionChart = new Chart(predictionCtx, {
+        type: 'line',
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: 'Predicted AQI',
+              data: [],
+              borderColor: '#8b5cf6',
+              backgroundColor: 'rgba(139, 92, 246, 0.1)',
+              tension: 0.4,
+              fill: true
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            },
+            x: {
+              grid: {
+                color: 'rgba(255, 255, 255, 0.1)'
+              },
+              ticks: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'rgba(255, 255, 255, 0.7)'
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Function to fetch and update sensor data
+    async function fetchSensorData() {
+      try {
+        const response = await fetch('/api/sensor-data');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        
+        // Update sensor values
+        document.getElementById('no2-value').textContent = data.no2.toFixed(2);
+        document.getElementById('co2-value').textContent = data.co2.toFixed(2);
+        document.getElementById('so2-value').textContent = data.so2.toFixed(2);
+        document.getElementById('dust-value').textContent = data.dust.toFixed(2);
+        
+        // Update gauge needles
+        updateGaugeNeedle('no2-needle', data.no2, 200);
+        updateGaugeNeedle('co2-needle', data.co2, 2000);
+        updateGaugeNeedle('so2-needle', data.so2, 150);
+        updateGaugeNeedle('dust-needle', data.dust, 100);
+        
+        // Update sensor status
+        updateSensorStatus('no2', data.no2, { good: 50, moderate: 100, poor: 150 });
+        updateSensorStatus('co2', data.co2, { good: 400, moderate: 800, poor: 1200 });
+        updateSensorStatus('so2', data.so2, { good: 35, moderate: 75, poor: 100 });
+        updateSensorStatus('dust', data.dust, { good: 12, moderate: 35, poor: 55 });
+        
+        // Update comparison chart
+        comparisonChart.data.datasets[0].data = [data.no2, data.co2, data.so2, data.dust];
+        comparisonChart.update();
+        
+        // Update time series chart
+        const now = new Date();
+        const timeLabel = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        
+        if (timeSeriesChart.data.labels.length >= 20) {
+          timeSeriesChart.data.labels.shift();
+          timeSeriesChart.data.datasets.forEach(dataset => dataset.data.shift());
+        }
+        
+        timeSeriesChart.data.labels.push(timeLabel);
+        timeSeriesChart.data.datasets[0].data.push(data.no2);
+        timeSeriesChart.data.datasets[1].data.push(data.co2);
+        timeSeriesChart.data.datasets[2].data.push(data.so2);
+        timeSeriesChart.data.datasets[3].data.push(data.dust);
+        timeSeriesChart.update();
+        
+        // Update AQI prediction
+        updateAQIDisplay(data.aqi);
+        
+        // Update prediction history
+        if (predictionChart.data.labels.length >= 15) {
+          predictionChart.data.labels.shift();
+          predictionChart.data.datasets[0].data.shift();
+        }
+        
+        predictionChart.data.labels.push(timeLabel);
+        predictionChart.data.datasets[0].data.push(data.aqi);
+        predictionChart.update();
+        
+        // Update last updated time
+        updateLastUpdatedTime(data.timestamp);
+        
+        // Reset countdown
+        countdown = 5;
+        document.getElementById('countdown').textContent = countdown;
+        
+        console.log('Sensor data updated successfully');
+        
+      } catch (error) {
+        console.error('Error fetching sensor data:', error);
+        document.getElementById('connection-status').innerHTML = 
+          '<span class="status-indicator bg-red-500"></span><span class="text-sm text-gray-300">Connection Error</span>';
+      }
+    }
+    
+    // Function to load historical data
+    async function loadHistoricalData() {
+      try {
+        const response = await fetch('/api/sensor-history');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        
+        if (data.timestamps && data.timestamps.length > 0) {
+          // Clear existing data
+          timeSeriesChart.data.labels = [];
+          timeSeriesChart.data.datasets[0].data = [];
+          timeSeriesChart.data.datasets[1].data = [];
+          timeSeriesChart.data.datasets[2].data = [];
+          timeSeriesChart.data.datasets[3].data = [];
+          
+          predictionChart.data.labels = [];
+          predictionChart.data.datasets[0].data = [];
+          
+          // Add historical data
+          data.timestamps.forEach((timestamp, index) => {
+            const date = new Date(timestamp);
+            const timeLabel = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            timeSeriesChart.data.labels.push(timeLabel);
+            timeSeriesChart.data.datasets[0].data.push(data.no2[index]);
+            timeSeriesChart.data.datasets[1].data.push(data.co2[index]);
+            timeSeriesChart.data.datasets[2].data.push(data.so2[index]);
+            timeSeriesChart.data.datasets[3].data.push(data.dust[index]);
+            
+            predictionChart.data.labels.push(timeLabel);
+            predictionChart.data.datasets[0].data.push(data.aqi[index]);
+          });
+          
+          timeSeriesChart.update();
+          predictionChart.update();
+        }
+        
+      } catch (error) {
+        console.error('Error loading historical data:', error);
+      }
+    }
+    
+    // Countdown timer
+    function startCountdown() {
+      setInterval(() => {
+        countdown--;
+        if (countdown < 0) countdown = 5;
+        document.getElementById('countdown').textContent = countdown;
+      }, 1000);
+    }
+    
+    // Initialize the dashboard when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize GSAP ScrollTrigger
+      gsap.registerPlugin(ScrollTrigger);
+      
+      // Animate graph containers on scroll
+      gsap.utils.toArray('.graph-container, .sensor-card').forEach(container => {
+        gsap.from(container, {
+          scrollTrigger: {
+            trigger: container,
+            start: "top 80%",
+            end: "bottom 20%",
+            toggleActions: "play none none reverse"
+          },
+          y: 50,
+          opacity: 0,
+          duration: 0.8,
+          ease: "power2.out"
+        });
+      });
+      
+      // Initialize charts
+      initializeCharts();
+      
+      // Load historical data first
+      loadHistoricalData().then(() => {
+        // Then start real-time updates
+        fetchSensorData();
+      });
+      
+      // Set up periodic data refresh
+      setInterval(fetchSensorData, 5000); // Refresh every 5 seconds
+      
+      // Start countdown timer
+      startCountdown();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Air Pollution Detection</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4">
+    <div class="glass-effect rounded-2xl shadow-2xl p-8 w-full max-w-md">
+        <div class="text-center mb-8">
+            <div class="mx-auto w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-shield-alt text-red-600 text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-white mb-2">Admin Login</h1>
+            <p class="text-gray-200">Air Pollution Detection System</p>
+        </div>
+
+        {% if msg %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+            <div class="flex items-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                {{ msg }}
+            </div>
+        </div>
+        {% endif %}
+
+        <form action="/admin/auth" method="POST" class="space-y-6">
+            <div>
+                <label for="username" class="block text-sm font-medium text-white mb-2">
+                    <i class="fas fa-user mr-2"></i>Username
+                </label>
+                <input type="text" 
+                       id="username" 
+                       name="username" 
+                       required
+                       class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Enter admin username">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-white mb-2">
+                    <i class="fas fa-lock mr-2"></i>Password
+                </label>
+                <input type="password" 
+                       id="password" 
+                       name="password" 
+                       required
+                       class="w-full px-4 py-3 rounded-lg bg-white/20 border border-white/30 text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                       placeholder="Enter admin password">
+            </div>
+
+            <button type="submit" 
+                    class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login as Admin
+            </button>
+        </form>
+
+        <div class="mt-8 text-center">
+            <a href="/" class="text-white hover:text-blue-200 transition duration-200">
+                <i class="fas fa-arrow-left mr-2"></i>Back to Home
+            </a>
+        </div>
+
+        <div class="mt-6 p-4 bg-yellow-100 border border-yellow-400 rounded-lg">
+            <div class="flex items-start">
+                <i class="fas fa-info-circle text-yellow-600 mr-2 mt-1"></i>
+                <div class="text-sm text-yellow-800">
+                    <p class="font-semibold">Default Admin Credentials:</p>
+                    <p>Username: <code class="bg-yellow-200 px-1 rounded">admin</code></p>
+                    <p>Password: <code class="bg-yellow-200 px-1 rounded">admin123</code></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Add some interactive effects
+        document.querySelectorAll('input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.classList.add('scale-105');
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.classList.remove('scale-105');
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+

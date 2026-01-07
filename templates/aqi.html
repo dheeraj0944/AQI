@@ -19,7 +19,7 @@
       <div class="flex items-center justify-between h-16">
         <div class="flex items-center">
           <div class="flex-shrink-0">
-            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AirGuard</span>
+            <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">AWAir</span>
           </div>
           <div class="hidden md:block">
             <div class="ml-10 flex items-baseline space-x-4">
@@ -28,6 +28,8 @@
                 Aqi
                 <span class="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-blue-500 transform origin-left scale-x-100 transition-transform duration-300"></span>
               </a>
+              <a href="/graphs" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Graphs</a>
+              <a href="/analytics" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Analytics</a>
               <a href="/logout" class="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700/50 transition-all duration-300">Logout</a>
             </div>
           </div>
@@ -52,11 +54,11 @@
           <select name="from_location" id="from_location" required
             class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-400">
             <option value="">Select starting location</option>
-            <option value="12.9716,77.5946">Bangalore - MG Road (12.9716,77.5946)</option>
-            <option value="12.9784,77.6408">Bangalore - Whitefield (12.9784,77.6408)</option>
+            <option value="12.973801,77.611885">Bangalore - MG Road (12.973801, 77.611885)</option>
+            <option value="12.9698,77.7500">Bangalore - Whitefield (12.9698, 77.7500)</option>
             <option value="13.0355,77.5972">Bangalore - Yelahanka (13.0355,77.5972)</option>
-            <option value="12.9250,77.5177">Bangalore - Jayanagar (12.9250,77.5177)</option>
-            <option value="12.9592,77.6974">Bangalore - Electronic City (12.9592,77.6974)</option>
+            <option value="12.9308, 77.5839">Bangalore - Jayanagar (12.9308, 77.5839)</option>
+            <option value="12.840711,77.676369">Bangalore - Electronic City (12.840711,77.676369)</option>
           </select>
         </div>
 
@@ -66,11 +68,12 @@
           <select name="to_location" id="to_location" required
             class="w-full p-3 bg-gray-700 border border-gray-600 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-blue-400">
             <option value="">Select destination</option>
-            <option value="12.9716,77.5946">Bangalore - MG Road (12.9716,77.5946)</option>
-            <option value="12.9784,77.6408">Bangalore - Whitefield (12.9784,77.6408)</option>
+            <option value="12.973801,77.611885">Bangalore - MG Road (12.973801,77.611885)</option>
+            <option value="12.9698, 77.7500">Bangalore - Whitefield (12.9698, 77.7500)</option>
             <option value="13.0355,77.5972">Bangalore - Yelahanka (13.0355,77.5972)</option>
-            <option value="12.9250,77.5177">Bangalore - Jayanagar (12.9250,77.5177)</option>
-            <option value="12.9592,77.6974">Bangalore - Electronic City (12.9592,77.6974)</option>
+            <option value="12.9308, 77.5839">Bangalore - Jayanagar (12.9308, 77.5839)</option>
+            <option value="12.840711,77.676369">Bangalore - Electronic City (12.840711,77.676369)</option>
+            <option value="12.972875,77.539459">Bangalore - vijayanagar (12.972875,77.539459)</option>
           </select>
         </div>
       </div>
