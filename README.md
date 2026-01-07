@@ -98,8 +98,3 @@ Trained models are included in the repository for demonstration and ease of eval
 This project is developed for academic and educational purposes.
 
 ---
-
-## 👨‍💻 Author
-
-Dheeraj  
-GitHub: https://github.com/dheeraj0944
